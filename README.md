@@ -43,3 +43,10 @@ If the bridge has not been cached yet, the agent tries to resolve it again on th
 
 ```bash
 cargo build --manifest-path dsgl-hot-reload-agent/Cargo.toml
+```
+
+The produced library name is OS-specific:
+
+- Windows: `dsgl_hot_reload_agent.dll`
+- Linux: `libdsgl_hot_reload_agent.so`
+- macOS: `libdsgl_hot_reload_agent.dylib`
