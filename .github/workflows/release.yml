@@ -1,0 +1,105 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - '*.*.*'
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build native library
+    runs-on: ${{ matrix.platform.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            lib_name: dsgl_hot_reload_agent.dll
+            archive_name: dsgl-hot-reload-agent-windows-x64.zip
+            archive_kind: zip
+
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            lib_name: libdsgl_hot_reload_agent.so
+            archive_name: dsgl-hot-reload-agent-linux-x64.tar.gz
+            archive_kind: tar.gz
+
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            lib_name: libdsgl_hot_reload_agent.dylib
+            archive_name: dsgl-hot-reload-agent-macos-x64.tar.gz
+            archive_kind: tar.gz
+
+          - os: macos-15-xlarge
+            target: aarch64-apple-darwin
+            lib_name: libdsgl_hot_reload_agent.dylib
+            archive_name: dsgl-hot-reload-agent-macos-arm64.tar.gz
+            archive_kind: tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.platform.target }}
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: "true"
+          add-rust-environment-hash-key: "false"
+
+      - name: Build library
+        run: cargo build --release --locked --target ${{ matrix.platform.target }}
+
+      - name: Prepare package tree
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pkg_root="package-root/dsgl-hot-reload-agent/target/release"
+          mkdir -p "$pkg_root"
+
+          cp "target/${{ matrix.platform.target }}/release/${{ matrix.platform.lib_name }}" \
+             "$pkg_root/${{ matrix.platform.lib_name }}"
+
+      - name: Build archive
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p dist
+
+          if [ "${{ matrix.platform.archive_kind }}" = "zip" ]; then
+            (
+              cd package-root
+              7z a "../dist/${{ matrix.platform.archive_name }}" "dsgl-hot-reload-agent"
+            )
+          else
+            tar -czf "dist/${{ matrix.platform.archive_name }}" -C package-root "dsgl-hot-reload-agent"
+          fi
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform.archive_name }}
+          path: dist/${{ matrix.platform.archive_name }}
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: true
+          files: dist/${{ matrix.platform.archive_name }}
