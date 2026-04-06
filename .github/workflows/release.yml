@@ -37,11 +37,11 @@ jobs:
             archive_name: dsgl-hot-reload-agent-macos-x64.tar.gz
             archive_kind: tar.gz
 
-          - os: macos-15-xlarge
-            target: aarch64-apple-darwin
-            lib_name: libdsgl_hot_reload_agent.dylib
-            archive_name: dsgl-hot-reload-agent-macos-arm64.tar.gz
-            archive_kind: tar.gz
+          # - os: macos-15-xlarge
+          #   target: aarch64-apple-darwin
+          #   lib_name: libdsgl_hot_reload_agent.dylib
+          #   archive_name: dsgl-hot-reload-agent-macos-arm64.tar.gz
+          #   archive_kind: tar.gz
 
     steps:
       - name: Checkout
