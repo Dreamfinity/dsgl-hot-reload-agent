@@ -4,7 +4,7 @@ Native JVMTI agent for DSGL hot reload.
 
 This subproject is written in Rust and built as a `cdylib`. It is loaded into the JVM and watches for class redefinition events. When that happens, it calls `org.dreamfinity.dsgl.core.HotReloadBridge.markHotSwap()`, so DSGL knows it needs to rebuild the UI.
 
-> This project is **not** part of the main Gradle multi-module build (`:core`, `:mc1710`, `:mc1710-demo`). It is built separately with Cargo.
+> This project is **not** part of the main Gradle multi-module build (`:core`, `:mc-forge-1-7-10`, `:mc-forge-1-7-10-demo`). It is built separately with Cargo.
 
 ## Purpose
 
@@ -16,7 +16,7 @@ On the DSGL side, `DsglScreenHost` checks `HotReloadBridge.consumeHotSwap()`. If
 
 - Agent: `dsgl-hot-reload-agent/src/lib.rs`
 - Bridge flag: `core/src/main/kotlin/org/dreamfinity/dsgl/core/HotReloadBridge.kt`
-- Rebuild trigger: `mc1710/src/main/kotlin/org/dreamfinity/dsgl/mc1710/DsglScreenHost.kt`
+- Rebuild trigger: `mc-forge-1-7-10/src/main/kotlin/org/dreamfinity/dsgl/mc1710/DsglScreenHost.kt`
 
 ## How It Works
 
